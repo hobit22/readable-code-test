@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,7 +18,7 @@ class CellPositionTest {
 
         // when
         // then
-        assertThatThrownBy(()->CellPosition.of(rowIndex, colIndex))
+        assertThatThrownBy(() -> CellPosition.of(rowIndex, colIndex))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -101,22 +100,59 @@ class CellPositionTest {
 
     @DisplayName("계산가능한 위치인지 확인할 수 있다.")
     @Test
-    void canCalculatePositionBy() {
+    void canCalculatePositionByImpossiblePosition() {
         // given
+        RelativePosition relativePosition = RelativePosition.of(-1, -1);
+        CellPosition cellPosition = CellPosition.of(0, 0);
 
         // when
+        boolean result = cellPosition.canCalculatePositionBy(relativePosition);
 
         // then
+        assertThat(result).isFalse();
     }
 
-    @DisplayName("게산가능한 위치가 아니라면 에러를 발생한다.")
+    @DisplayName("계산가능한 위치인지 확인할 수 있다.")
+    @Test
+    void canCalculatePositionByPossiblePosition() {
+        // given
+        RelativePosition relativePosition = RelativePosition.of(1, 1);
+        CellPosition cellPosition = CellPosition.of(0, 0);
+
+        // when
+        boolean result = cellPosition.canCalculatePositionBy(relativePosition);
+
+        // then
+        assertThat(result).isTrue();
+    }
+
+    @DisplayName("계산가능한 위치라면 계산된 셀을 리턴한다.")
+    @Test
+    void calculatePositionByNextCell() {
+        // given
+        RelativePosition relativePosition = RelativePosition.of(1, 1);
+        CellPosition cellPosition = CellPosition.of(0, 0);
+
+        // when
+        CellPosition nextCellPosition = cellPosition.calculatePositionBy(relativePosition);
+
+        // then
+        assertThat(nextCellPosition.getRowIndex()).isEqualTo(1);
+        assertThat(nextCellPosition.getColIndex()).isEqualTo(1);
+    }
+
+    @DisplayName("계산가능한 위치가 아니라면 에러를 발생한다.")
     @Test
     void calculatePositionBy() {
         // given
+        RelativePosition relativePosition = RelativePosition.of(-1, -1);
+        CellPosition cellPosition = CellPosition.of(0, 0);
 
         // when
-
         // then
+        assertThatThrownBy(() -> cellPosition.calculatePositionBy(relativePosition))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("움직일 수 있는 좌표가 아닙니다.");
     }
 
 }
