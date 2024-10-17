@@ -28,3 +28,133 @@
 3. GameBoard
 
 지뢰찾기를 하기 위해 최소한으로 필요한 도메인이 무엇일까? 라고 고민한 결과 위 3개의 도메인이 핵심이라고 판단하였다.
+
+
+### interface 를 테스트 할 때...
+`Cell` 을 테스트 하려고 할 때 어떻게 테스트 코드를 작성하는게 좋을까?
+
+1. `CellClassTest` 를 작성하고 모든 구현체를 테스트한다.
+   1. 한개의 클래스에 각 구현체 별로 테스트코드가 생성한다?
+         ```java
+           @DisplayName("LandMine은 지뢰다.")
+           @Test
+           void isLandMineTest1() {
+           // given
+           Cell cell = new LandMineCell();
+        
+                // when
+                boolean result = cell.isLandMine();
+        
+                // then
+                assertThat(result).isTrue();
+           }
+           @DisplayName("NumberCell은 지뢰가 아니다.")
+           @Test
+           void isLandMineTest() {
+           // given
+           Cell cell = new NumberCell(0);
+        
+                // when
+                boolean result = cell.isLandMine();
+        
+                // then
+                assertThat(result).isFalse();
+           }
+        
+           @DisplayName("EmptyCell은 지뢰가 아니다.")
+           @Test
+           void isLandMineTest3() {
+           // given
+           Cell cell = new EmptyCell();
+        
+                // when
+                boolean result = cell.isLandMine();
+        
+                // then
+                assertThat(result).isFalse();
+           }
+            ```
+   2.  코드는 거의 동일하니 parameterizedTest를 사용한다?
+        ```java
+        @DisplayName("Cell 이 지뢰인지 아닌지 알 수 있다.")
+        @ParameterizedTest
+        @MethodSource("provideCellData")
+        void isLandMineTest4(Cell cell, boolean result) {
+            // given
+    
+            // when
+    
+            // then
+            assertThat(cell.isLandMine()).isEqualTo(result);
+        }
+    
+        private static Stream<Arguments> provideCellData() {
+            return Stream.of(
+                Arguments.of(new LandMineCell(), true),
+                Arguments.of(new EmptyCell(), false),
+                Arguments.of(new NumberCell(1), false)
+            );
+        }
+        ```
+2. 구현체들을 테스트하는 코드는 거의 중복이니 테스트 인터페이스(`CellTest`)를 만든다?
+   ```java
+    public interface CellTest <T extends Cell> {
+    
+        void isLandMineTest();
+    
+    }
+    ```
+   ```java
+    class EmptyCellTest implements CellTest<EmptyCell> {
+    
+        @DisplayName("EmptyCell은 자뢰가 아니다.")
+        @Test
+        @Override
+        public void isLandMineTest() {
+            // given
+            EmptyCell cell = new EmptyCell();
+    
+            // when
+            boolean isLandMine = cell.isLandMine();
+    
+            // then
+            assertThat(isLandMine).isFalse();
+        }
+   }
+    
+    class LandMineCellTest implements CellTest<LandMineCell> {
+    
+        @Override
+        @DisplayName("LandMineCell은 지뢰다.")
+        @Test
+        public void isLandMineTest() {
+            // given
+            Cell cell = new LandMineCell();
+    
+            // when
+            boolean isLandMine = cell.isLandMine();
+    
+            // then
+            assertThat(isLandMine).isTrue();
+        }
+    }
+
+
+    class NumberCellTest implements CellTest<NumberCell>{
+    
+        @Override
+        @DisplayName("NumberCell은 자뢰가 아니다.")
+        @Test
+        public void isLandMineTest() {
+            // given
+            Cell cell = new NumberCell(1);
+    
+            // when
+            boolean isLandMine = cell.isLandMine();
+    
+            // then
+            assertThat(isLandMine).isFalse();
+    
+        }
+    }
+    ```

@@ -50,7 +50,7 @@ public class CellClassTest {
         assertThat(result).isFalse();
     }
 
-    @DisplayName("Cell들이 지뢰인지 아닌지 알 수 있다.")
+    @DisplayName("Cell 이 지뢰인지 아닌지 알 수 있다.")
     @ParameterizedTest
     @MethodSource("provideCellData")
     void isLandMineTest4(Cell cell, boolean result) {
